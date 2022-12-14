@@ -1,9 +1,9 @@
 import 'dart:convert';
-
 import 'package:coffe_pelayan/constant.dart';
 import 'package:coffe_pelayan/table_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatelessWidget {
   final username = TextEditingController();
@@ -91,12 +91,14 @@ class LoginScreen extends StatelessWidget {
                               'username': username.text,
                               'password': password.text,
                             });
-
                             var data = json.decode(Response.body);
-
                             if (data['status']) {
-                              print(data['body']['token']);
                               var token = data['body']['token'];
+                              SharedPreferences sp =
+                                  await SharedPreferences.getInstance();
+
+                              sp.setString('token', token);
+
                               Navigator.pushReplacement(context,
                                   MaterialPageRoute(builder: (context) {
                                 return HomeWidget();

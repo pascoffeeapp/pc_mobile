@@ -16,6 +16,14 @@ class HomeWidget extends StatefulWidget {
 
 class _HomeWidgetState extends State<HomeWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  List tables = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getTable();
+    super.initState();
+  }
 
   getTable() async {
     SharedPreferences sp = await SharedPreferences.getInstance();
@@ -26,8 +34,14 @@ class _HomeWidgetState extends State<HomeWidget> {
       'Accept': 'aplication/json',
       'Authorization': 'Bearer $token',
     });
-    var data = json.decode(Response.body);
-    return (data['status']) ? data['body'] : [];
+
+    if (Response.statusCode == 200) {
+      var data = json.decode(Response.body);
+
+      if (data['status']) {
+        tables = await data['body'];
+      }
+    }
   }
 
   @override
@@ -79,30 +93,13 @@ class _HomeWidgetState extends State<HomeWidget> {
                                         style: TextStyle(color: Colors.black),
                                       )),
                                   new TextButton(
-                                      onPressed: () async {
-                                        SharedPreferences sp =
-                                            await SharedPreferences
-                                                .getInstance();
-                                        var token = sp.getString('token');
-                                        final url = Uri.parse(
-                                            "https://kopipas.policyservices.site/api/auth/logout");
-                                        final Response =
-                                            await http.post(url, headers: {
-                                          'Content-Type': 'aplication/json',
-                                          'Accept': 'aplication/json',
-                                          'Authorization': 'Bearer $token',
-                                        });
-
-                                        var data = json.decode(Response.body);
-
-                                        if (data['status']) {
-                                          Navigator.of(context)
-                                              .pushAndRemoveUntil(
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          LoginScreen()),
-                                                  (route) => route.isFirst);
-                                        }
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .pushAndRemoveUntil(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        LoginScreen()),
+                                                (route) => route.isFirst);
                                       },
                                       child: Text(
                                         'yes',
@@ -141,65 +138,48 @@ class _HomeWidgetState extends State<HomeWidget> {
                   ),
                   Expanded(
                     child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: FutureBuilder(
-                          future: getTable(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              var tables = snapshot.data as List?;
-                              // List tables = snapshot.data;
-                              return GridView.builder(
-                                itemCount: tables!.length,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  childAspectRatio: 1,
-                                ),
-                                itemBuilder: (context, index) {
-                                  return GestureDetector(
-                                    onTap: (() {
-                                      Navigator.of(context).push(
-                                          new MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  new OutletScreen()));
-                                    }),
-                                    child: new Card(
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                      color: (tables[index]['status'])
-                                          ? Colors.redAccent
-                                          : mTable,
-                                      child: GridTile(
-                                        child: Container(
-                                          child: Align(
-                                            alignment: AlignmentDirectional(
-                                                -0.5, 0.85),
-                                            child: Text(
-                                              tables[index]['code'],
-                                              textAlign: TextAlign.start,
-                                              style: TextStyle(
-                                                fontFamily: 'Montserrat',
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                      padding: const EdgeInsets.all(10.0),
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1,
+                        ),
+                        
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: (() {
+                              Navigator.of(context).push(new MaterialPageRoute(
+                                  builder: (BuildContext context) =>
+                                      new OutletScreen()));
+                            }),
+                            child: new Card(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              color: mTable,
+                              child: GridTile(
+                                child: Container(
+                                  child: Align(
+                                    alignment: AlignmentDirectional(-0.5, 0.85),
+                                    child: Text(
+                                      tables[index]['code'],
+                                      textAlign: TextAlign.start,
+                                      style: TextStyle(
+                                        fontFamily: 'Montserrat',
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  );
-                                },
-                              );
-                            } else {
-                              return Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                          },
-                        )),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        itemCount: tables.length,
+                      ),
+                    ),
                   ),
                 ]))));
   }

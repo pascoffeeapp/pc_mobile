@@ -39,7 +39,7 @@ dependencies:
   flutter_svg: ^1.1.0
   introduction_screen: ^1.0.9
   http: ^0.13.5
-  # shared_preferences: ^2.0.15
+  shared_preferences: ^2.0.15
 
   
 
